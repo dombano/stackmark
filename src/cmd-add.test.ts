@@ -39,4 +39,11 @@ describe('cmdAdd', () => {
     const call = (spy as jest.Mock).mock.calls[0][1];
     expect(call.description).toBe('');
   });
+
+  it('uses empty tags array when not provided', async () => {
+    const spy = jest.spyOn(storage, 'addBookmark');
+    await cmdAdd('https://example.com', 'Example');
+    const call = (spy as jest.Mock).mock.calls[0][1];
+    expect(call.tags).toEqual([]);
+  });
 });
