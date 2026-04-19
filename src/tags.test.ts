@@ -16,6 +16,10 @@ describe('listAllTags', () => {
   it('returns sorted unique tags', () => {
     expect(listAllTags(makeStore())).toEqual(['dev', 'ts', 'web']);
   });
+
+  it('returns empty array for empty store', () => {
+    expect(listAllTags({ bookmarks: [] })).toEqual([]);
+  });
 });
 
 describe('countByTag', () => {
@@ -35,6 +39,11 @@ describe('renameTag', () => {
     expect(store.bookmarks[0].tags).toContain('typescript');
     expect(store.bookmarks[0].tags).not.toContain('ts');
   });
+
+  it('returns 0 when tag does not exist', () => {
+    const store = makeStore();
+    expect(renameTag(store, 'nonexistent', 'other')).toBe(0);
+  });
 });
 
 describe('removeTag', () => {
@@ -43,6 +52,11 @@ describe('removeTag', () => {
     const affected = removeTag(store, 'dev');
     expect(affected).toBe(2);
     expect(store.bookmarks[0].tags).not.toContain('dev');
+  });
+
+  it('returns 0 when tag does not exist', () => {
+    const store = makeStore();
+    expect(removeTag(store, 'nonexistent')).toBe(0);
   });
 });
 
