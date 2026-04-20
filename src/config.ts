@@ -47,3 +47,15 @@ export function resolveStorePath(override?: string): string {
   if (override) return path.resolve(override);
   return loadConfig().storePath;
 }
+
+/**
+ * Resets the config file to default values by deleting the existing config.
+ * Returns the default config that is now in effect.
+ */
+export function resetConfig(): StackmarkConfig {
+  const configPath = getConfigPath();
+  if (fs.existsSync(configPath)) {
+    fs.unlinkSync(configPath);
+  }
+  return { ...DEFAULT_CONFIG };
+}
