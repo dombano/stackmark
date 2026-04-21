@@ -42,6 +42,15 @@ describe('importFromJson', () => {
     importFromJson(store, JSON.stringify([{ url: 'https://x.com', tags: ['  WEB ', 'Dev'] }]));
     expect(store.bookmarks[0].tags).toEqual(['web', 'dev']);
   });
+
+  it('skips entries missing a url', () => {
+    const store = emptyStore();
+    const raw = JSON.stringify([{ tags: ['web'] }, { url: 'https://valid.com', tags: [] }]);
+    const result = importFromJson(store, raw);
+    expect(result.added).toBe(1);
+    expect(result.skipped).toBe(1);
+    expect(store.bookmarks).toHaveLength(1);
+  });
 });
 
 describe('importFromCsv', () => {
