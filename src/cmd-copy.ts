@@ -6,6 +6,13 @@ import { formatBookmarkPlain } from "./format";
 
 export type CopyField = "url" | "title" | "all";
 
+/**
+ * Copies a bookmark field to the system clipboard.
+ *
+ * @param query - Search query to locate the bookmark (by title, URL, or tag).
+ * @param options.field - Which field to copy: "url" (default), "title", or "all".
+ * @param options.storePath - Override path to the bookmark store file.
+ */
 export async function cmdCopy(
   query: string,
   options: { field?: CopyField; storePath?: string } = {}
@@ -35,6 +42,12 @@ export async function cmdCopy(
       text = bookmark.url;
   }
 
-  await clipboardy.write(text);
+  try {
+    await clipboardy.write(text);
+  } catch (err) {
+    console.error(`Failed to write to clipboard: ${err instanceof Error ? err.message : err}`);
+    process.exit(1);
+  }
+
   console.log(`Copied to clipboard: ${text}`);
 }
