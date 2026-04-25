@@ -1,56 +1,63 @@
-# cmd-colorize
+# `stackmark colorize` — Assign Colors to Bookmarks
 
-Assign color labels to bookmarks for quick visual grouping and filtering.
+The `colorize` command lets you assign visual color labels to bookmarks for quick identification and filtering.
 
 ## Usage
 
 ```
-stackmark color set <id> <color>
-stackmark color clear <id>
-stackmark color list [--color <color>]
+stackmark colorize set <url> <color>
+stackmark colorize get <url>
+stackmark colorize clear <url>
+stackmark colorize filter <color>
+stackmark colorize list
 ```
 
-## Available Colors
+## Subcommands
 
-`red`, `green`, `blue`, `yellow`, `magenta`, `cyan`, `white`, `none`
+### `set <url> <color>`
 
-## Commands
+Assign a color to a bookmark by URL. Colors can be named (e.g. `red`, `blue`, `green`) or hex values (e.g. `#ff0000`).
 
-### `color set <id> <color>`
-
-Assign a color label to a bookmark by its ID.
-
-```
-stackmark color set abc123 red
+```bash
+stackmark colorize set https://example.com red
 ```
 
-### `color clear <id>`
+### `get <url>`
 
-Remove the color label from a bookmark.
+Retrieve the color currently assigned to a bookmark.
 
-```
-stackmark color clear abc123
-```
-
-### `color list`
-
-List all bookmarks that have a color assigned. Optionally filter by a specific color.
-
-```
-stackmark color list
-stackmark color list --color green
+```bash
+stackmark colorize get https://example.com
+# Color: red
 ```
 
-## Output Example
+### `clear <url>`
 
+Remove the color assignment from a bookmark.
+
+```bash
+stackmark colorize clear https://example.com
 ```
-🔴 [red]   https://example.com — Example Site
-🟢 [green] https://github.com — GitHub
-🟡 [yellow] https://news.ycombinator.com
+
+### `filter <color>`
+
+List all bookmarks that have been assigned a specific color.
+
+```bash
+stackmark colorize filter red
+```
+
+### `list`
+
+List all bookmarks that have any color assigned.
+
+```bash
+stackmark colorize list
 ```
 
 ## Notes
 
-- Colors are stored in the bookmark's `meta.color` field.
-- Setting color to `none` is equivalent to clearing it.
-- Colors are purely cosmetic and do not affect search or sorting.
+- Valid color names include: `red`, `green`, `blue`, `yellow`, `orange`, `purple`, `pink`, `cyan`, `white`, `black`.
+- Hex color codes in the format `#rrggbb` are also accepted.
+- Colors are stored in the bookmark's metadata and do not affect search or export behavior.
+- Use `colorize list` to audit all colorized bookmarks at a glance.
