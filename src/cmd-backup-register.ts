@@ -55,11 +55,18 @@ export function registerBackupCommand(yargs: Argv): Argv {
             console.error("Error: --file is required for restore");
             process.exit(1);
           }
+          if (!path.isAbsolute(argv.file)) {
+            argv.file = path.resolve(process.cwd(), argv.file);
+          }
           restoreBackup(argv.file, storePath);
           console.log(`Restored from: ${argv.file}`);
           break;
         }
         case "prune": {
+          if (argv.keep < 1) {
+            console.error("Error: --keep must be at least 1");
+            process.exit(1);
+          }
           const deleted = pruneBackups(storePath, argv.keep);
           console.log(`Pruned ${deleted.length} backup(s).`);
           break;
