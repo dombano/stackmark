@@ -1,6 +1,13 @@
 import type { Command } from "commander";
 import { cmdNoteSet, cmdNoteGet, cmdNoteClear } from "./cmd-notes";
 
+/**
+ * Registers the `note` subcommand group onto the given Commander program.
+ * Subcommands:
+ *   note set <query> <note>  – attach or replace a note on a bookmark
+ *   note get <query>         – display the note for a bookmark
+ *   note clear <query>       – remove the note from a bookmark
+ */
 export function registerNotesCommand(program: Command): void {
   const note = program
     .command("note")
