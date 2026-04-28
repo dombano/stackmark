@@ -1,64 +1,62 @@
-import { BookmarkStore, Bookmark } from './types';
+import { BookmarkStore, Bookmark } from "./types";
 
-export type Visibility = 'public' | 'private' | 'unlisted';
+export type VisibilityLevel = "public" | "private" | "unlisted";
 
-const VALID_VISIBILITIES: Visibility[] = ['public', 'private', 'unlisted'];
-
-export function isValidVisibility(v: string): v is Visibility {
-  return VALID_VISIBILITIES.includes(v as Visibility);
+export function isValidVisibility(level: string): level is VisibilityLevel {
+  return ["public", "private", "unlisted"].includes(level);
 }
 
 export function setVisibility(
   store: BookmarkStore,
-  id: string,
-  visibility: Visibility
-): BookmarkStore {
-  const bookmark = store.bookmarks.find((b) => b.id === id);
-  if (!bookmark) throw new Error(`Bookmark not found: ${id}`);
-  const updated = { ...bookmark, visibility };
-  return {
-    ...store,
-    bookmarks: store.bookmarks.map((b) => (b.id === id ? updated : b)),
-  };
+  url: string,
+  level: VisibilityLevel
+): Bookmark | undefined {
+  const bm = store.bookmarks.find((b) => b.url === url);
+  if (!bm) return undefined;
+  (bm as any).visibility = level;
+  return bm;
 }
 
 export function removeVisibility(
   store: BookmarkStore,
-  id: string
-): BookmarkStore {
-  const bookmark = store.bookmarks.find((b) => b.id === id);
-  if (!bookmark) throw new Error(`Bookmark not found: ${id}`);
-  const { visibility: _v, ...rest } = bookmark as Bookmark & { visibility?: Visibility };
-  return {
-    ...store,
-    bookmarks: store.bookmarks.map((b) => (b.id === id ? (rest as Bookmark) : b)),
-  };
+  url: string
+): boolean {
+  const bm = store.bookmarks.find((b) => b.url === url);
+  if (!bm) return false;
+  delete (bm as any).visibility;
+  return true;
 }
 
 export function getVisibility(
   store: BookmarkStore,
-  id: string
-): Visibility | undefined {
-  const bookmark = store.bookmarks.find((b) => b.id === id);
-  if (!bookmark) throw new Error(`Bookmark not found: ${id}`);
-  return (bookmark as Bookmark & { visibility?: Visibility }).visibility;
+  url: string
+): VisibilityLevel | null | undefined {
+  const bm = store.bookmarks.find((b) => b.url === url);
+  if (!bm) return undefined;
+  return (bm as any).visibility ?? null;
 }
 
 export function filterByVisibility(
   store: BookmarkStore,
-  visibility: Visibility
+  level: VisibilityLevel
 ): Bookmark[] {
-  return store.bookmarks.filter(
-    (b) => (b as Bookmark & { visibility?: Visibility }).visibility === visibility
-  );
+  return store.bookmarks.filter((b) => (b as any).visibility === level);
 }
 
-export function formatVisibilityList(bookmarks: Bookmark[]): string {
-  if (bookmarks.length === 0) return 'No bookmarks found.';
-  return bookmarks
-    .map((b) => {
-      const vis = (b as Bookmark & { visibility?: Visibility }).visibility ?? 'public';
-      return `[${vis}] ${b.id} — ${b.url}${b.title ? ` (${b.title})` : ''}`;
-    })
-    .join('\n');
+export function formatVisibilitySummary(store: BookmarkStore): string {
+  const counts: Record<string, number> = { public: 0, private: 0, unlisted: 0, none: 0 };
+  for (const bm of store.bookmarks) {
+    const v = (bm as any).visibility;
+    if (v && counts[v] !== undefined) {
+      counts[v]++;
+    } else {
+      counts["none"]++;
+    }
+  }
+  return [
+    `public:   ${counts["public"]}`,
+    `private:  ${counts["private"]}`,
+    `unlisted: ${counts["unlisted"]}`,
+    `none:     ${counts["none"]}`,
+  ].join("\n");
 }

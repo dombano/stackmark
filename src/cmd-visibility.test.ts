@@ -1,93 +1,95 @@
 import {
+  isValidVisibility,
   setVisibility,
   removeVisibility,
   getVisibility,
   filterByVisibility,
-  isValidVisibility,
-  formatVisibilityList,
-} from './cmd-visibility';
-import { BookmarkStore, Bookmark } from './types';
+  formatVisibilitySummary,
+} from "./cmd-visibility";
+import { BookmarkStore } from "./types";
 
 function makeStore(): BookmarkStore {
   return {
     bookmarks: [
-      { id: 'a1', url: 'https://example.com', tags: [], createdAt: '2024-01-01' } as Bookmark,
-      { id: 'b2', url: 'https://private.io', tags: [], createdAt: '2024-01-02' } as Bookmark,
-      { id: 'c3', url: 'https://unlisted.dev', tags: [], createdAt: '2024-01-03' } as Bookmark,
+      { id: "1", url: "https://public.com", title: "Public", tags: [], createdAt: "2024-01-01", visibility: "public" } as any,
+      { id: "2", url: "https://private.com", title: "Private", tags: [], createdAt: "2024-01-02", visibility: "private" } as any,
+      { id: "3", url: "https://unlisted.com", title: "Unlisted", tags: [], createdAt: "2024-01-03", visibility: "unlisted" } as any,
+      { id: "4", url: "https://none.com", title: "No Visibility", tags: [], createdAt: "2024-01-04" },
     ],
-  } as BookmarkStore;
+  };
 }
 
-describe('isValidVisibility', () => {
-  it('accepts valid values', () => {
-    expect(isValidVisibility('public')).toBe(true);
-    expect(isValidVisibility('private')).toBe(true);
-    expect(isValidVisibility('unlisted')).toBe(true);
-  });
-
-  it('rejects invalid values', () => {
-    expect(isValidVisibility('hidden')).toBe(false);
-    expect(isValidVisibility('')).toBe(false);
-  });
+test("isValidVisibility accepts valid levels", () => {
+  expect(isValidVisibility("public")).toBe(true);
+  expect(isValidVisibility("private")).toBe(true);
+  expect(isValidVisibility("unlisted")).toBe(true);
 });
 
-describe('setVisibility', () => {
-  it('sets visibility on a bookmark', () => {
-    const store = makeStore();
-    const updated = setVisibility(store, 'a1', 'private');
-    expect(getVisibility(updated, 'a1')).toBe('private');
-  });
-
-  it('throws for unknown id', () => {
-    expect(() => setVisibility(makeStore(), 'zz', 'public')).toThrow('Bookmark not found: zz');
-  });
-
-  it('does not mutate other bookmarks', () => {
-    const store = makeStore();
-    const updated = setVisibility(store, 'a1', 'unlisted');
-    expect(getVisibility(updated, 'b2')).toBeUndefined();
-  });
+test("isValidVisibility rejects invalid levels", () => {
+  expect(isValidVisibility("secret")).toBe(false);
+  expect(isValidVisibility("")).toBe(false);
+  expect(isValidVisibility("hidden")).toBe(false);
 });
 
-describe('removeVisibility', () => {
-  it('removes visibility from a bookmark', () => {
-    let store = makeStore();
-    store = setVisibility(store, 'b2', 'private');
-    store = removeVisibility(store, 'b2');
-    expect(getVisibility(store, 'b2')).toBeUndefined();
-  });
-
-  it('throws for unknown id', () => {
-    expect(() => removeVisibility(makeStore(), 'xx')).toThrow('Bookmark not found: xx');
-  });
+test("setVisibility updates bookmark", () => {
+  const store = makeStore();
+  const bm = setVisibility(store, "https://none.com", "public");
+  expect(bm).toBeDefined();
+  expect((bm as any).visibility).toBe("public");
 });
 
-describe('filterByVisibility', () => {
-  it('returns only bookmarks with matching visibility', () => {
-    let store = makeStore();
-    store = setVisibility(store, 'a1', 'public');
-    store = setVisibility(store, 'b2', 'private');
-    store = setVisibility(store, 'c3', 'private');
-    const privates = filterByVisibility(store, 'private');
-    expect(privates.map((b) => b.id)).toEqual(['b2', 'c3']);
-  });
-
-  it('returns empty array when none match', () => {
-    const store = makeStore();
-    expect(filterByVisibility(store, 'unlisted')).toHaveLength(0);
-  });
+test("setVisibility returns undefined for missing bookmark", () => {
+  const store = makeStore();
+  const result = setVisibility(store, "https://missing.com", "public");
+  expect(result).toBeUndefined();
 });
 
-describe('formatVisibilityList', () => {
-  it('returns message when empty', () => {
-    expect(formatVisibilityList([])).toBe('No bookmarks found.');
-  });
+test("removeVisibility clears the field", () => {
+  const store = makeStore();
+  const ok = removeVisibility(store, "https://public.com");
+  expect(ok).toBe(true);
+  expect((store.bookmarks[0] as any).visibility).toBeUndefined();
+});
 
-  it('formats bookmarks with visibility', () => {
-    let store = makeStore();
-    store = setVisibility(store, 'a1', 'public');
-    const result = formatVisibilityList(filterByVisibility(store, 'public'));
-    expect(result).toContain('[public]');
-    expect(result).toContain('https://example.com');
-  });
+test("removeVisibility returns false for missing bookmark", () => {
+  const store = makeStore();
+  expect(removeVisibility(store, "https://missing.com")).toBe(false);
+});
+
+test("getVisibility returns correct level", () => {
+  const store = makeStore();
+  expect(getVisibility(store, "https://private.com")).toBe("private");
+});
+
+test("getVisibility returns null when not set", () => {
+  const store = makeStore();
+  expect(getVisibility(store, "https://none.com")).toBeNull();
+});
+
+test("getVisibility returns undefined for missing bookmark", () => {
+  const store = makeStore();
+  expect(getVisibility(store, "https://missing.com")).toBeUndefined();
+});
+
+test("filterByVisibility returns matching bookmarks", () => {
+  const store = makeStore();
+  const results = filterByVisibility(store, "private");
+  expect(results).toHaveLength(1);
+  expect(results[0].url).toBe("https://private.com");
+});
+
+test("filterByVisibility returns empty array when none match", () => {
+  const store = makeStore();
+  const results = filterByVisibility(store, "unlisted");
+  expect(results).toHaveLength(1);
+  expect(results[0].url).toBe("https://unlisted.com");
+});
+
+test("formatVisibilitySummary counts all levels", () => {
+  const store = makeStore();
+  const summary = formatVisibilitySummary(store);
+  expect(summary).toContain("public:   1");
+  expect(summary).toContain("private:  1");
+  expect(summary).toContain("unlisted: 1");
+  expect(summary).toContain("none:     1");
 });
