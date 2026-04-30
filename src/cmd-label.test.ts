@@ -35,6 +35,13 @@ describe('addLabel', () => {
     const store = makeStore();
     expect(() => addLabel(store, 'z9', 'test')).toThrow('Bookmark not found: z9');
   });
+
+  it('trims whitespace from label', () => {
+    const store = makeStore();
+    const bm = addLabel(store, 'a1', '  personal  ');
+    expect(bm.labels).toContain('personal');
+    expect(bm.labels).not.toContain('  personal  ');
+  });
 });
 
 describe('removeLabel', () => {
@@ -72,6 +79,12 @@ describe('filterByLabel', () => {
   it('returns empty array when no match', () => {
     const store = makeStore();
     expect(filterByLabel(store, 'nonexistent')).toEqual([]);
+  });
+
+  it('is case-insensitive when filtering', () => {
+    const store = makeStore();
+    const results = filterByLabel(store, 'WORK');
+    expect(results.map(b => b.id)).toEqual(['b2', 'c3']);
   });
 });
 
